@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: nginx-apps
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - appName: test
+            valuesFile: values_qa.yaml
+            namespace: default
+  template:
+    metadata:
+      name: '{{appName}}-nginx'
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/harsh-viradia/nginx
+        targetRevision: main
+        path: apps/frontend
+        helm:
+          valueFiles:
+            - '{{valuesFile}}'
+      destination:
+        server: https://6A5B26235CB263C921EE0963F3BDDAD0.gr7.us-east-1.eks.amazonaws.com
+        namespace: '{{namespace}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
